@@ -1,11 +1,16 @@
 from flask import Flask, render_template, redirect, url_for, request, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from models import db, User, Message
+from model import db, User, Message
 from forms import LoginForm, RegisterForm
 from config import Config
+from model import db, bcrypt, User, Message  # Add `bcrypt` to import
+
+
 
 app = Flask(__name__)
+
+bcrypt.init_app(app)
 app.config.from_object(Config)
 
 db.init_app(app)
