@@ -1,14 +1,16 @@
-from flask import Flask, render_template, redirect, url_for, request, flash, session
+
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
+
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from models import db, User, Message
+from model import db, bcrypt, User, Message
 from forms import LoginForm, RegisterForm
 from config import Config
 
 app = Flask(__name__)
 app.config.from_object(Config)
-
 db.init_app(app)
+bcrypt.init_app(app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -18,12 +20,58 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+
+
 @app.route('/')
 @login_required
 def home():
-    users = User.query.all()
-    return render_template('home.html', users=users)
+    sent_ids = db.session.query(Message.receiver_id).filter_by(sender_id=current_user.id)
+    received_ids = db.session.query(Message.sender_id).filter_by(receiver_id=current_user.id)
+    user_ids = sent_ids.union(received_ids).distinct()
+    conversations = User.query.filter(User.id.in_(user_ids)).filter(User.id != current_user.id).all()
+    return render_template('home.html', conversations=conversations, selected_user=None, messages=[])
 
+
+@app.route('/message/<int:receiver_id>', methods=['GET', 'POST'])
+@login_required
+def message(receiver_id):
+    selected_user = User.query.get_or_404(receiver_id)
+
+    if request.method == 'POST':
+        content = request.form.get('message')
+        if content:
+            msg = Message(sender_id=current_user.id, receiver_id=receiver_id, content=content)
+            db.session.add(msg)
+            db.session.commit()
+            return redirect(url_for('message', receiver_id=receiver_id))
+
+    # All conversations
+    sent_ids = db.session.query(Message.receiver_id).filter_by(sender_id=current_user.id)
+    received_ids = db.session.query(Message.sender_id).filter_by(receiver_id=current_user.id)
+    user_ids = sent_ids.union(received_ids).distinct()
+    conversations = User.query.filter(User.id.in_(user_ids)).filter(User.id != current_user.id).all()
+
+    # Conversation with selected user
+    messages = Message.query.filter(
+        ((Message.sender_id == current_user.id) & (Message.receiver_id == receiver_id)) |
+        ((Message.sender_id == receiver_id) & (Message.receiver_id == current_user.id))
+    ).order_by(Message.timestamp).all()
+
+    return render_template('home.html', conversations=conversations, selected_user=selected_user, messages=messages)
+# 🔍 Search for user to start new chat
+@app.route('/search_user', methods=['GET', 'POST'])
+@login_required
+def search_user():
+    query = request.args.get('q', '')
+    if query:
+        users = User.query.filter(User.username.ilike(f'%{query}%')).filter(User.id != current_user.id).all()
+    else:
+        users = []
+
+    return render_template('search_user.html', users=users, query=query)
+
+
+# 🔐 Auth
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
@@ -35,6 +83,7 @@ def register():
         flash('Registration successful! You can now log in.', 'success')
         return redirect(url_for('login'))
     return render_template('register.html', form=form)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -48,24 +97,22 @@ def login():
             flash('Invalid credentials', 'danger')
     return render_template('login.html', form=form)
 
+
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('login'))
 
-@app.route('/message/<int:receiver_id>', methods=['GET', 'POST'])
+@app.route('/search_api')
 @login_required
-def message(receiver_id):
-    if request.method == 'POST':
-        content = request.form['content']
-        if content:
-            msg = Message(sender_id=current_user.id, receiver_id=receiver_id, content=content)
-            db.session.add(msg)
-            db.session.commit()
-            flash('Message sent!', 'success')
-    messages = Message.query.filter((Message.sender_id == current_user.id) | (Message.receiver_id == current_user.id)).all()
-    return render_template('messages.html', messages=messages, receiver_id=receiver_id)
+def search_api():
+    query = request.args.get('q', '').strip()
+    if not query:
+        return jsonify([])
+
+    users = User.query.filter(User.username.ilike(f"%{query}%")).limit(10).all()
+    return jsonify([{'id': u.id, 'username': u.username} for u in users])
 
 if __name__ == '__main__':
     with app.app_context():
