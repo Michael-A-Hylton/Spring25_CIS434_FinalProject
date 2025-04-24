@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search Users</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .top-bar {
+            margin-bottom: 20px;
+        }
+        .user-result {
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        .user-result a {
+            text-decoration: none;
+            font-weight: bold;
+            color: #333;
+        }
+        .user-result a:hover {
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <form method="GET" action="{{ url_for('search_user') }}">
+        <input type="text" name="q" placeholder="Search by username..." value="{{ query }}" required>
+        <input type="submit" value="Search">
+        <a href="{{ url_for('home') }}">← Back to Home</a>
+    </form>
+</div>
+
+{% if users %}
+    <h3>Results:</h3>
+    {% for user in users %}
+        <div class="user-result">
+            <a href="{{ url_for('message', receiver_id=user.id) }}">{{ user.username }}</a>
+        </div>
+    {% endfor %}
+{% elif query %}
+    <p>No users found matching "<strong>{{ query }}</strong>"</p>
+{% endif %}
+
+</body>
+</html>
