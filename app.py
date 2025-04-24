@@ -77,16 +77,9 @@ def register():
         print("Validation errors:", form.errors)  # Show why it failed
 
     if form.validate_on_submit():
-        print("Form validated!")
-        print("Password ")
-        print(request.form.password.data)
-        print(request.form.password)
-        print(form.password.data)
 
 
-        if request.form.password != request.form.confirm_password:
-            flash('Passwords do not match! Please try again.', 'danger')
-            return render_template('register.html', form=form)
+
 
         existing_user = User.query.filter_by(username=form.username.data).first()
         if existing_user:
@@ -136,4 +129,4 @@ def search_api():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run()
+    app.run(debug=True)
