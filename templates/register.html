@@ -25,10 +25,23 @@
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
+
+        .error-text {
+            color: red;
+            font-size: 0.875rem;
+        }
+
+        .message-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .message-list li {
+            margin-bottom: 0.5rem;
+        }
     </style>
 </head>
 <body>
-
     <div class="login-wrapper">
         <div class="login-container">
             <h1 class="title has-text-centered">Register</h1>
@@ -41,6 +54,9 @@
                     <div class="control">
                         {{ form.username(class="input") }}
                     </div>
+                    {% for error in form.username.errors %}
+                        <small class="error-text">{{ error }}</small>
+                    {% endfor %}
                 </div>
 
                 <div class="field">
@@ -48,6 +64,9 @@
                     <div class="control">
                         {{ form.password(class="input") }}
                     </div>
+                    {% for error in form.password.errors %}
+                        <small class="error-text">{{ error }}</small>
+                    {% endfor %}
                 </div>
 
                 <div class="field">
@@ -55,6 +74,9 @@
                     <div class="control">
                         {{ form.confirm_password(class="input") }}
                     </div>
+                    {% for error in form.confirm_password.errors %}
+                        <small class="error-text">{{ error }}</small>
+                    {% endfor %}
                 </div>
 
                 <div class="field">
@@ -65,16 +87,16 @@
             </form>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
-				{% if messages %}
-					<div class="notification is-light mt-4">
-						{% for category, message in messages %}
-							<div class="notification is-{{ category }}">
-								{{ message }}
-							</div>
-						{% endfor %}
-					</div>
-				{% endif %}
-			{% endwith %}
+                {% if messages %}
+                    <div class="notification is-light mt-4">
+                        {% for category, message in messages %}
+                            <div class="notification is-{{ category }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
 
             <p class="has-text-centered mt-4">
                 Already have an account?
@@ -82,6 +104,5 @@
             </p>
         </div>
     </div>
-
 </body>
 </html>
