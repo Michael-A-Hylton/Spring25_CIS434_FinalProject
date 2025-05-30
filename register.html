@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+</head>
+<body>
+
+	{% with messages = get_flashed_messages(with_categories=true) %}
+	  {% if messages %}
+		<ul>
+		  {% for category, message in messages %}
+			<li style="color: {% if category == 'success' %}green{% elif category == 'danger' %}red{% else %}black{% endif %};">
+			  {{ message }}
+			</li>
+		  {% endfor %}
+		</ul>
+	  {% endif %}
+	{% endwith %}
+
+	<form method="POST">
+		{{ form.hidden_tag() }}
+
+		<div>
+			{{ form.username.label }}<br>
+			{{ form.username }}<br>
+			{% for error in form.username.errors %}
+				<small style="color: red;">{{ error }}</small>
+			{% endfor %}
+		</div>
+
+		<div>
+			{{ form.password.label }}<br>
+			{{ form.password }}<br>
+			{% for error in form.password.errors %}
+				<small style="color: red;">{{ error }}</small>
+			{% endfor %}
+		</div>
+
+		<div>
+			{{ form.confirm_password.label }}<br>
+			{{ form.confirm_password }}<br>
+			{% for error in form.confirm_password.errors %}
+				<small style="color: red;">{{ error }}</small>
+			{% endfor %}
+		</div>
+
+		<div>
+			{{ form.submit }}
+		</div>
+	</form>
+
+</body>
+</html>
