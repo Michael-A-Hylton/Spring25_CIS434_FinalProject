@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Two-Factor Authentication</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='bulma.css') }}">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+        }
+
+        .login-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .digit-box {
+            width: 2.5rem;
+            height: 2.5rem;
+            font-size: 1.5rem;
+            text-align: center;
+            margin: 0 0.2rem;
+        }
+
+        .digit-box:focus {
+            border-color: #3273dc;
+            box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25);
+        }
+
+        .field.is-grouped-centered {
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-container">
+            <h1 class="title has-text-centered">Enter Verification Code</h1>
+
+            <form method="POST" action="{{ url_for('two_factor') }}">
+                <!-- Optional: Include this if using CSRF manually -->
+                {# <input type="hidden" name="csrf_token" value="{{ csrf_token }}"> #}
+
+                <div class="field is-grouped is-grouped-centered">
+                    {% for i in range(6) %}
+                    <p class="control">
+                        <input class="input digit-box"
+                               type="text"
+                               name="code{{ i }}"
+                               maxlength="1"
+                               pattern="\d"
+                               inputmode="numeric"
+                               required>
+                    </p>
+                    {% endfor %}
+                </div>
+
+                <div class="field mt-4">
+                    <div class="control">
+                        <button class="button is-primary is-fullwidth" type="submit">Verify</button>
+                    </div>
+                </div>
+            </form>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="notification is-light mt-4">
+                        {% for category, message in messages %}
+                            <div class="notification is-{{ category }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <p class="has-text-centered mt-4">
+                <a href="{{ url_for('verify_2fa') }}">Resend code</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+    document.querySelectorAll('.digit-box').forEach((box, idx, boxes) => {
+        box.addEventListener('input', () => {
+            if (box.value.length === 1 && idx < boxes.length - 1) {
+                boxes[idx + 1].focus();
+            }
+        });
+
+        box.addEventListener('keydown', (e) => {
+            if (e.key === "Backspace" && box.value === "" && idx > 0) {
+                boxes[idx - 1].focus();
+            }
+        });
+    });
+    </script>
+</body>
+</html>

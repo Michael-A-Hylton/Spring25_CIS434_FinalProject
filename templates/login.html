@@ -2,21 +2,78 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Login</title>
+    <link rel="stylesheet" href="static/bulma.css">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
 
+        }
+
+        .login-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
 <body>
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        <p>{{ form.username.label }} {{ form.username }}</p>
-        <p>{{ form.password.label }} {{ form.password }}</p>
-        <p>{{ form.submit }}</p>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">{{ message }}</div>
-          {% endfor %}
-        {% endwith %}
-    </form>
-    <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a>.</p>
+    <div class="login-wrapper">
+        <div class="login-container">
+            <h1 class="title has-text-centered">Login</h1>
+
+            <form method="POST">
+                {{ form.hidden_tag() }}
+
+                <div class="field">
+                    <label class="label">{{ form.username.label }}</label>
+                    <div class="control">
+                        {{ form.username(class="input") }}
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">{{ form.password.label }}</label>
+                    <div class="control">
+                        {{ form.password(class="input") }}
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="control">
+                        {{ form.submit(class="button is-primary is-fullwidth") }}
+                    </div>
+                </div>
+            </form>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div class="notification is-light mt-4">
+                  {% for category, message in messages %}
+                    <div class="notification is-{{ category }}">
+                      {{ message }}
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+
+            <p class="has-text-centered mt-4">
+                Don't have an account?
+                <a href="{{ url_for('register') }}">Register here</a>.
+            </p>
+        </div>
+    </div>
 </body>
 </html>
